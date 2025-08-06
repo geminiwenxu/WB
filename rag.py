@@ -1,10 +1,12 @@
-import os
-import signal
-import sys 
+import signal, sys
 import google.generativeai as genai
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
-GEMINI_API_KEY = '7d00a1fa19974c7c1677698d59b280b5ae013196'
+from model import VertexAIReader
+
+
+
+
 
 def signal_handler(sig, frame):
     print('\nThanks for using gemini')
@@ -35,18 +37,14 @@ def get_relevant_context_from_db(query):
     return context
 
 
-def generate_answer(prompt):
-    genai.configure(api_key=GEMINI_API_KEY)
-    model =genai.GenerativeModel(model_name='gemini-pro')
-    answer = model.generate_content(prompt)
-    return answer.text
-
-
 while True:
     print('----------------')
     print('what is your question?')
     query = input('question: ')
     context = get_relevant_context_from_db(query)
+    print("context:", context)
     prompt = generate_rag_prompt(query=query, context=context)
-    answer = generate_answer(prompt=prompt)
-    print(answer)
+    print("prompt", prompt)
+    generator = VertexAIReader()
+    result = generator.generate_content(prompt)
+    print(result)
