@@ -2,7 +2,7 @@
 import os
 from google.cloud import aiplatform
 from google.genai import types, Client
-import config
+import Vector_RAG.config as config
 
 
 

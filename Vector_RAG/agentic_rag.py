@@ -1,9 +1,10 @@
 import signal, sys
+from langchain_core.tools import tool 
 import google.generativeai as genai
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from model import VertexAIReader
-
+from Vector_RAG.model import VertexAIReader
+from langchain.agents import AgentExecutor, create_tool_calling_agent
 
 
 
@@ -36,15 +37,35 @@ def get_relevant_context_from_db(query):
         context += result.page_content + "\n"
     return context
 
+# create the tools
+@tool(response_format="content_and_artifact")
+def retrieve(query: str):
+    """Retrieve information related to a query."""
+    embedding_function = HuggingFaceEmbeddings(model_name= 'sentence-transformers/all-MiniLM-L6-v2', model_kwargs={"device":"cpu"})
+    vector_db = Chroma(persist_directory='chroma_db_pdf', embedding_function=embedding_function)
+    retrieved_docs = vector_db.similarity_search(query, k=2)
+    serialized = "\n\n".join(
+        (f"Source: {doc.metadata}\n" f"Content: {doc.page_content}")
+        for doc in retrieved_docs
+    )
+    return serialized, retrieved_docs
+
+generator = VertexAIReader()
+llm = generator.generate_content("hello world")
+
+def agentic_rag(prompt):
+    tools =[retrieve]
+    agent = create_tool_calling_agent(llm, tools, prompt)
+    agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
+    response = agent_executor.invoke({"input": "why is agentic rag better than naive rag?"})
+    return response["output"]
+
+
+
+
 
 while True:
     print('----------------')
     print('what is your question?')
     query = input('question: ')
-    context = get_relevant_context_from_db(query)
-    print("context:", context)
-    prompt = generate_rag_prompt(query=query, context=context)
-    print("prompt", prompt)
-    generator = VertexAIReader()
-    result = generator.generate_content(prompt)
-    print(result)
+    response = agentic_rag(query)

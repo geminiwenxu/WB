@@ -1,0 +1,32 @@
+2025-09-16 11:08:46.0835 - INFO - graphrag.cli.index - Logging enabled at /Users/geminiwenxu/Desktop/WB/ragtest/logs/logs.txt
+2025-09-16 11:08:51.0523 - ERROR - graphrag.language_model.providers.fnllm.utils - Error Invoking LLM
+Traceback (most recent call last):
+  File "/Users/geminiwenxu/Desktop/WB/venv/lib/python3.12/site-packages/fnllm/base/base_llm.py", line 144, in __call__
+    return await self._decorated_target(prompt, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/geminiwenxu/Desktop/WB/venv/lib/python3.12/site-packages/fnllm/base/services/json.py", line 78, in invoke
+    return await delegate(prompt, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/geminiwenxu/Desktop/WB/venv/lib/python3.12/site-packages/fnllm/base/services/rate_limiter.py", line 75, in invoke
+    result = await delegate(prompt, **args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/geminiwenxu/Desktop/WB/venv/lib/python3.12/site-packages/fnllm/base/base_llm.py", line 126, in _decorator_target
+    output = await self._execute_llm(prompt, kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/geminiwenxu/Desktop/WB/venv/lib/python3.12/site-packages/fnllm/openai/llm/openai_text_chat_llm.py", line 173, in _execute_llm
+    raw_response = await self._client.chat.completions.with_raw_response.create(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/geminiwenxu/Desktop/WB/venv/lib/python3.12/site-packages/openai/_legacy_response.py", line 381, in wrapped
+    return cast(LegacyAPIResponse[R], await func(*args, **kwargs))
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/geminiwenxu/Desktop/WB/venv/lib/python3.12/site-packages/openai/resources/chat/completions/completions.py", line 2585, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/geminiwenxu/Desktop/WB/venv/lib/python3.12/site-packages/openai/_base_client.py", line 1794, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/geminiwenxu/Desktop/WB/venv/lib/python3.12/site-packages/openai/_base_client.py", line 1594, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.AuthenticationError: Error code: 401 - {'error': {'message': 'Incorrect API key provided: <API_KEY>. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}
+2025-09-16 11:08:51.0525 - ERROR - graphrag.index.validate_config - LLM configuration error detected. Exiting...
+Error code: 401 - {'error': {'message': 'Incorrect API key provided: <API_KEY>. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}
