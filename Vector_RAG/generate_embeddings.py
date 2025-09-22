@@ -3,7 +3,7 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import PyPDFLoader
 
-loaders =[PyPDFLoader('data/monopoly.pdf')]
+loaders =[PyPDFLoader('data/ticket_to_ride.pdf')]
 
 docs = []
 

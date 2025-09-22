@@ -2,7 +2,7 @@ import signal, sys
 import google.generativeai as genai
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from Vector_RAG.model import VertexAIReader
+from model import VertexAIReader
 
 
 
