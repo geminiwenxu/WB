@@ -210,3 +210,6 @@ __marimo__/
 chroma_db_pdf/
 
 .DS_Store
+
+#API-KEY .json
+**/stream-2---in-prod-svc-sgto-7d00a1fa1997.json
