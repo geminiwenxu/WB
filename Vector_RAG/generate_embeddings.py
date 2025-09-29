@@ -4,7 +4,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter, CharacterTex
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.documents import Document
 
-loader =PyPDFLoader('data/ticket_to_ride.pdf')
+loader =PyPDFLoader('/Users/geminiwenxu/Desktop/WB/data/ticket_to_ride.pdf')
 docs = []
 docs_lazy = loader.lazy_load()
 

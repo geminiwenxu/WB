@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from io import StringIO
 import streamlit as st
-from rag import RAG
+from rag import RAG, get_relevant_context_from_db
 def main():
     st.set_page_config(
     page_title="",
@@ -56,10 +56,15 @@ def main():
             submitted = st.form_submit_button("Submit")
             if submitted:
                 st.write("The office option selected is: ", option, " for country: ", country)
-            print(option, country)
-            context, result= RAG(option, country)
-     
-            st.write(context)
+        with st.form("my_form_2"):
+            contexts = get_relevant_context_from_db(query="hello world")
+            selected_context = st.selectbox("Which context to select?",contexts,index=None,placeholder="Select contact method...")
+            submitted = st.form_submit_button("Submit selected context")
+            if submitted:
+                st.write("Context selected: ", selected_context)
+                result= RAG("ticket", "age", selected_context)
+                st.write("Output from LLM: ",result)
+
         
 
 

@@ -7,7 +7,7 @@ from sentence_transformers import SentenceTransformer
 import torch
 
 def get_relevant_context_from_db(query):
-    context = ""
+    contexts = []
     #embedding_function = HuggingFaceEmbeddings(model_name= 'sentence-transformers/all-MiniLM-L6-v2',model_kwargs={"device": "cpu"}, encode_kwargs={"normalize_embeddings": False})
     
 
@@ -28,21 +28,22 @@ def get_relevant_context_from_db(query):
 
     vector_db = Chroma(persist_directory='chroma_db_pdf', embedding_function=embedding_function)
     search_results = vector_db.similarity_search(query, k=2) # Chroma distance is the L2 norm squared; k is the amount of documents to return
-    print("----------------------------")
-    #print(search_results)
     for result in search_results:
-        print(type(result))
-        print("result",len(result.metadata))
-        context += result.metadata['source']+str(result.metadata['page'])+result.metadata["UPLOAD_DATE"]+result.page_content + "\n"
-        print("context",context)
-    return context
+        #context.append(result.metadata['source'] + " " + str(result.metadata['page'])+ " " + result.metadata["UPLOAD_DATE"] + result.page_content)
+        contexts.append({
+        "source": result.metadata['source'],
+        "page": result.metadata['page'],
+        "upload_date": result.metadata["UPLOAD_DATE"],
+        "content": result.page_content
+    })
+    return contexts
 
 
 def generate_rag_prompt(query, context):
     """"
     To generate promot based on the query from user and relevant context based on similarity 
     """
-    context = context.replace("'", "").replace("\n", "")
+    #context = context.replace("'", "").replace("\n", "")
     prompt = ("""you are a bot to retrieve information from our RAG system and answer the questions.
               question: '{query}'
               context: '{context}'
@@ -50,12 +51,12 @@ def generate_rag_prompt(query, context):
                 """).format(query=query, context=context)
     return prompt
 
-def RAG(option, country):
-    query = "hello world" + option + country 
+def RAG(option, country, context):
+    print(context)
+    query = "how to ride a ticket" #+ country + option 
     context = get_relevant_context_from_db(query)
     prompt = generate_rag_prompt(query=query, context=context)
     generator = VertexAIReader()
     result = generator.generate_content(prompt)
-    return context, result
+    return result
 
-RAG("HELLO", "WORLD")
