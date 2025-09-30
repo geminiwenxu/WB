@@ -21,7 +21,7 @@ def extract_text_from_pdf(pdf_path):
         return []
 
 
-def extract_images_from_pdf(pdf_path, output_folder="images"):
+def extract_images_from_pdf(pdf_path, output_folder=os.path.join(os.path.dirname(__file__), "Data", "images")):
     """Extrahiert Bilder aus einem PDF und speichert sie in einem Ordner"""
     try:
         if not os.path.exists(output_folder):
@@ -52,7 +52,7 @@ def extract_images_from_pdf(pdf_path, output_folder="images"):
         return []
 
 
-def extract_tables_from_pdf(pdf_path, output_folder="tables"):
+def extract_tables_from_pdf(pdf_path, output_folder=os.path.join(os.path.dirname(__file__), "Data", "tables")):
     """Extrahiert Tabellen aus einem PDF und speichert sie als CSV-Dateien"""
     try:
         if not os.path.exists(output_folder):
@@ -110,7 +110,7 @@ def main(pdf_path):
 
 
 if __name__ == "__main__":
-    pdf_path = r"test.pdf"
+    pdf_path = os.path.join(os.path.dirname(__file__), "test1.pdf")
     try:
         extracted_content = main(pdf_path)
     except Exception as e:
