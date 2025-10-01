@@ -1,11 +1,7 @@
 import fitz  # PyMuPDF
-from pdf2image import convert_from_path
-import tabula
 import os
 from langchain.document_loaders import PyMuPDFLoader
-from langchain.schema import Document
-import numpy as np
-from PIL import Image
+import pdfplumber
 import io
 import pandas as pd
 
@@ -53,29 +49,24 @@ def extract_images_from_pdf(pdf_path, output_folder=os.path.join(os.path.dirname
 
 
 def extract_tables_from_pdf(pdf_path, output_folder=os.path.join(os.path.dirname(__file__), "Data", "tables")):
-    """Extrahiert Tabellen aus einem PDF und speichert sie als CSV-Dateien"""
+    """Extrahiert Tabellen aus einem PDF mit pdfplumber und speichert sie als CSV-Dateien"""
     try:
         if not os.path.exists(output_folder):
             os.makedirs(output_folder)
 
-        # Verwende tabula-py mit den funktionierenden java_options
-        tables = tabula.read_pdf(
-            pdf_path,
-            pages="all",
-            multiple_tables=True,
-            # Kein GUI nötig, sicher für Serverbetrieb / Erlaubt nicht modularisiertem Code die Nutzung von nativen Funktionen
-            java_options=["-Djava.awt.headless=true", "--enable-native-access=ALL-UNNAMED"]
-        )
         table_paths = []
-
-        for table_idx, table in enumerate(tables):
-            table_path = os.path.join(output_folder, f"table_{table_idx + 1}.json")
-            table.to_csv(table_path, index=False)
-            table_paths.append(table_path)
+        with pdfplumber.open(pdf_path) as pdf:
+            for page_num, page in enumerate(pdf.pages, start=1):
+                tables = page.extract_tables()
+                for table_idx, table in enumerate(tables, start=1):
+                    df = pd.DataFrame(table[1:], columns=table[0])
+                    table_path = os.path.join(output_folder, f"table_page_{page_num}_{table_idx}.csv")
+                    df.to_csv(table_path, index=False, encoding="utf-8")
+                    table_paths.append(table_path)
 
         return table_paths
     except Exception as e:
-        print(f"Fehler beim Extrahieren von Tabellen: {e}")
+        print(f"Fehler beim Extrahieren von Tabellen (pdfplumber): {e}")
         return []
 
 
@@ -110,7 +101,7 @@ def main(pdf_path):
 
 
 if __name__ == "__main__":
-    pdf_path = os.path.join(os.path.dirname(__file__), "test1.pdf")
+    pdf_path = os.path.join(os.path.dirname(__file__), "test4.pdf")
     try:
         extracted_content = main(pdf_path)
     except Exception as e:
