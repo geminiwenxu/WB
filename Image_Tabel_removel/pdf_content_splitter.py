@@ -7,18 +7,18 @@ import pandas as pd
 
 
 def extract_text_from_pdf(pdf_path):
-    """Extrahiert Text aus einem PDF mit PyMuPDF und gibt ihn als LangChain-Dokument zurück"""
+    """Extracts text from a PDF with PyMuPDF and returns it as a LangChain document"""
     try:
         loader = PyMuPDFLoader(pdf_path)
         documents = loader.load()
         return documents
     except Exception as e:
-        print(f"Fehler beim Extrahieren von Text: {e}")
+        print(f"Error extracting text: {e}")
         return []
 
 
 def extract_images_from_pdf(pdf_path, output_folder=os.path.join(os.path.dirname(__file__), "Data", "images")):
-    """Extrahiert Bilder aus einem PDF und speichert sie in einem Ordner"""
+    """Extracts images from a PDF and saves them in a folder"""
     try:
         if not os.path.exists(output_folder):
             os.makedirs(output_folder)
@@ -49,7 +49,7 @@ def extract_images_from_pdf(pdf_path, output_folder=os.path.join(os.path.dirname
 
 
 def extract_tables_from_pdf(pdf_path, output_folder=os.path.join(os.path.dirname(__file__), "Data", "tables")):
-    """Extrahiert Tabellen aus einem PDF mit pdfplumber und speichert sie als CSV-Dateien"""
+    """extracts tables from a PDF with pdfplumber and saves them as CSV files"""
     try:
         if not os.path.exists(output_folder):
             os.makedirs(output_folder)
@@ -66,31 +66,31 @@ def extract_tables_from_pdf(pdf_path, output_folder=os.path.join(os.path.dirname
 
         return table_paths
     except Exception as e:
-        print(f"Fehler beim Extrahieren von Tabellen (pdfplumber): {e}")
+        print(f"Error extracting tables (pdfplumber): {e}")
         return []
 
 
 def main(pdf_path):
-    """Hauptfunktion zum Extrahieren von Text, Bildern und Tabellen aus einem PDF"""
-    # Text extrahieren
-    print("Extrahiere Text...")
+    """Main function for extracting text, images and tables from a PDF"""
+    # Extract text
+    print("Extract text...")
     documents = extract_text_from_pdf(pdf_path)
     for doc in documents:
         print(f"Seite {doc.metadata['page'] + 1}: {doc.page_content}...")
 
-    # Bilder extrahieren
-    print("\nExtrahiere Bilder...")
+    # Extract pictures
+    print("\nExtract pictures...")
     image_paths = extract_images_from_pdf(pdf_path)
     for img_path in image_paths:
-        print(f"Bild gespeichert: {img_path}")
+        print(f"Pictures saved: {img_path}")
 
-    # Tabellen extrahieren
-    print("\nExtrahiere Tabellen...")
+    # Extract tables
+    print("\nExtract tables...")
     table_paths = extract_tables_from_pdf(pdf_path)
     for table_path in table_paths:
-        print(f"Tabelle gespeichert: {table_path}")
+        print(f"Table saved: {table_path}")
 
-    # Zusammenfassung der extrahierten Inhalte für LangChain
+    # Summary of extracted content for LangChain
     extracted_content = {
         "documents": documents,
         "image_paths": image_paths,
@@ -105,4 +105,4 @@ if __name__ == "__main__":
     try:
         extracted_content = main(pdf_path)
     except Exception as e:
-        print(f"Fehler in der Hauptfunktion: {e}")
+        print(f"Error in the main function: {e}")
