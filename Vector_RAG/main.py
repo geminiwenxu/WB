@@ -46,11 +46,11 @@ def main():
         
         with st.form("my_form"):
             st.write("Choose the country")
-            country = st.selectbox("Which country to select",("Germany", "Austria"))
-            option = st.selectbox(
+            country = st.multiselect("Which country or countries to choose?",
+            ["Germany", "Austria", "France", "Netherlands"])
+            option = st.multiselect(
             "Which option?",
-            ("Booking office", "writing office", "None"),)
-            st.write("You selected:", option)
+            ["Booking office", "Writing office", "None"])
 
             # Every form must have a submit button.
             submitted = st.form_submit_button("Submit")
