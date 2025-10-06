@@ -3,7 +3,7 @@ import os
 from google.cloud import aiplatform
 from google.genai import types, Client
 import config as config
-
+from constants import SYS_PROMOT, RESPONSE_SCHEMA
 
 
 
@@ -26,7 +26,9 @@ class VertexAIReader:
             types.Content(
                 role="user",
                 parts=[
-                    types.Part.from_text(text=f"""Analyze the following question {question} and answer the questions accordingly.""")
+                    types.Part.from_text(text=f"""Analyze the following question {question} and answer the questions accordingly."""),
+                    types.Part.from_text(text=RESPONSE_SCHEMA),
+                    types.Part.from_text(text = SYS_PROMOT)
                 ]
             )
         ]
