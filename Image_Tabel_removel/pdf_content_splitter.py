@@ -4,7 +4,10 @@ from langchain.document_loaders import PyMuPDFLoader
 import pdfplumber
 import io
 import pandas as pd
+import delete_data_saves
 
+
+delete_data_saves.delete_data()
 
 def extract_text_from_pdf(pdf_path):
     """Extracts text from a PDF with PyMuPDF and returns it as a LangChain document"""
@@ -37,6 +40,7 @@ def extract_images_from_pdf(pdf_path, output_folder=os.path.join(os.path.dirname
                 image_ext = base_image["ext"]
                 image_path = os.path.join(output_folder, f"image_page_{page_num + 1}_{img_index}.{image_ext}")
 
+                #saving raw data of a image
                 with open(image_path, "wb") as image_file:
                     image_file.write(image_bytes)
                 image_paths.append(image_path)
@@ -101,7 +105,7 @@ def main(pdf_path):
 
 
 if __name__ == "__main__":
-    pdf_path = os.path.join(os.path.dirname(__file__), "test4.pdf")
+    pdf_path = os.path.join(os.path.dirname(__file__), "test2.pdf")
     try:
         extracted_content = main(pdf_path)
     except Exception as e:

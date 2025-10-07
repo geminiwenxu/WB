@@ -3,6 +3,9 @@ from PIL import Image
 from langchain_google_genai import ChatGoogleGenerativeAI
 import config_llm as config
 from langchain_core.messages import HumanMessage
+from langchain.output_parsers import PydanticOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from pydantic import BaseModel, Field
 import base64
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = config.SERVICE_ACCOUNT_KEY_PATH
@@ -43,23 +46,48 @@ except Exception as e:
     exit()
 
 
-prompt = (
-    "Analyze the image and describe its content in as much detail as possible in text form, "
-    "so that a blind person can imagine the image 1:1. Describe colors, shapes, objects, "
-    "background, text (if any), and the overall composition of the image."
-)
+# Structured Output Klass (Pydantic Modell)
+class ImageResponse(BaseModel):
+    """Response to user"""
 
-message = HumanMessage(
-    content=[
-        {"type": "text", "text": prompt},
-        {"type": "image_url", "image_url": f"data:image/png;base64,{image_data}"}
+    headline: str = Field(
+        description = "Give me a Headline (max 3 Words), what is the usage of the image"
+    )
+    structure: str = Field(
+        description = "How is the image structured, what are its special features?"
+    )
+    analyse: str = Field(
+        description = "Analyze the image and describe its content in as much detail as possible in text form, "
+        "so that a blind person can imagine the image 1:1. Describe colors, shapes, objects, "
+        "background, text (if any), and the overall composition of the image."
+    )
+
+parser = PydanticOutputParser(pydantic_object=ImageResponse)
+
+prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", "You are an expert at describing images."),
+        (
+            "user",
+            "Analyze the provided image and provide your answer using the following format:\n{format_instructions}"
+        )
     ]
 )
+
+
+message = HumanMessage(
+        content=[
+            {"type": "text", "text": prompt.format(format_instructions=parser.get_format_instructions())},
+            {"type": "image_url", "image_url": f"data:image/png;base64,{image_data}"},
+        ]
+    )
+
 
 # Sende die Anfrage an das Modell
 try:
     response = llm.invoke([message])
-    print("Model's response:")
-    print(response.content)
+    parsed = parser.parse(response.content)
+    print(parsed.model_dump_json(indent=2))
+
 except Exception as e:
     print(f"Error when querying the model: {e}")
