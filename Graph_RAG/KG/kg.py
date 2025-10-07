@@ -83,9 +83,58 @@ def create_vector_index(graph, index_name):
     graph.query(vector_index_query)
 
 
+######## Needs Rework with Gemini!!! ########
+def embed_text(graph, OPENAI_API_KEY, OPENAI_ENDPOINT, node_name):
+    """
+    Creates embeddings for nodes with a dynamic label using the OpenAI endpoint,
+    and displays a single-line progress bar using tqdm.
+    
+    Args:
+        graph: A knowledge graph client/connection object that has a `query` method.
+        OPENAI_API_KEY: The API key for the OpenAI service.
+        OPENAI_ENDPOINT: The OpenAI endpoint URL.
+        node_name: The label of nodes to process.
+    """
+    print("Starting embedding update...")
+
+    # Fetch nodes without embeddings using elementId to avoid deprecated id() warnings
+    fetch_nodes_query = f"""
+    MATCH (n:{node_name})
+    WHERE n.textEmbeddingOpenAI IS NULL
+    RETURN elementId(n) AS node_id, n.text AS text
+    """
+    nodes = list(graph.query(fetch_nodes_query))
+    total_nodes = len(nodes)
+    print(f"Found {total_nodes} nodes without embeddings.")
+
+    # Use a single-line progress bar for node updates
+    with tqdm(total=total_nodes, desc="Embedding nodes", ncols=100, leave=True) as pbar:
+        for record in nodes:
+            node_id = record["node_id"]
+            update_query = f"""
+            MATCH (n:{node_name})
+            WHERE elementId(n) = $node_id
+            WITH n, genai.vector.encode(
+              n.text, 
+              "OpenAI", 
+              {{
+                token: $openAiApiKey, 
+                endpoint: $openAiEndpoint
+              }}
+            ) AS vector
+            CALL db.create.setNodeVectorProperty(n, "textEmbeddingOpenAI", vector)
+            """
+            graph.query(update_query, params={
+                "node_id": node_id,
+                "openAiApiKey": OPENAI_API_KEY,
+                "openAiEndpoint": OPENAI_ENDPOINT
+            })
+            pbar.update(1)
+
+    print("Finished embedding update.")
 
 
-
+######## Needs Rework with Gemini!!! ########
 def embed_text(graph, OPENAI_API_KEY, OPENAI_ENDPOINT, node_name):
     """
     Creates embeddings for nodes with a dynamic label using the OpenAI endpoint,
