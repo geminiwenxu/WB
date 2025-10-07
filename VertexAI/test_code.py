@@ -3,6 +3,8 @@ import KG.config as config
 import vertexai
 import os
 
+# All three are required to use vertex AI.
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = config.SERVICE_ACCOUNT_KEY_PATH
 os.environ["GOOGLE_CLOUD_PROJECT"] = config.G_PROJECT_NAME
 os.environ["GOOGLE_CLOUD_LOCATION"] = config.G_PROJECT_LOCATION
 
