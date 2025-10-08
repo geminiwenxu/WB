@@ -1,3 +1,4 @@
+###### Needs Rework #####
 retrieval_qa_chat_prompt = """
 Task:Generate Cypher statement to query a graph database.
 
@@ -74,4 +75,4 @@ Node Section Properties:
 The question is:
 {question}
  
-""" 
+"""
