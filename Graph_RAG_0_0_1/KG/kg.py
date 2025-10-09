@@ -125,7 +125,7 @@ def embed_text(graph, GOOGLE_CLOUD_PROJECT, GOOGLE_CLOUD_LOCATION, node_name):
 
             # Creating vector using VertexAI
             embedding_output = embeddings.embed(
-                [content], embeddings_task_type="RETRIEVAL_DOCUMENT", dimensions=1536
+                [content], embeddings_task_type="RETRIEVAL_DOCUMENT", dimensions=768
             )[0]
 
             update_query = f"""
