@@ -14,22 +14,17 @@ load_dotenv()
 
 # To prevent Neo4j from issuing an error message, the VertexAI model must be set to
 # the correct dimension.
-class VertexEmbeddings1536(Embeddings):
+class VertexEmbeddings768(Embeddings):
 
     def __init__(self, base):
         self.base = base
-        self.dimension = 1536  # needs to be read by Neo4j
+        self.dimension = 768
 
     def embed_documents(self, texts):
-        return self.base.embed(
-            texts, embeddings_task_type="RETRIEVAL_DOCUMENT", dimensions=1536
-        )
-
+        return self.base.embed(texts, embeddings_task_type="RETRIEVAL_DOCUMENT", dimensions=768)
+    
     def embed_query(self, text):
-        return self.base.embed(
-            [text], embeddings_task_type="RETRIEVAL_QUERY", dimensions=1536
-        )[0]
-
+        return self.base.embed([text], embeddings_task_type="RETRIEVAL_QUERY", dimensions=768)[0]
 
 def query_vector_rag(
     question: str,
@@ -67,7 +62,7 @@ def query_vector_rag(
 
     # Initiating the model with the correct dimension
     base = VertexAIEmbeddings(model_name="gemini-embedding-001")
-    embeddings = VertexEmbeddings1536(base)
+    embeddings = VertexEmbeddings768(base)
 
     # Create the vector store from the existing Neo4j graph using provided inputs.
     vector_store = Neo4jVector.from_existing_graph(
