@@ -5,31 +5,30 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from model import VertexAIReader
 from sentence_transformers import SentenceTransformer
 import torch
+import os
+import config
+import vertexai
+from langchain_google_vertexai import VertexAIEmbeddings
 
 def get_relevant_context_from_db(query):
     contexts = []
-    #embedding_function = HuggingFaceEmbeddings(model_name= 'sentence-transformers/all-MiniLM-L6-v2',model_kwargs={"device": "cpu"}, encode_kwargs={"normalize_embeddings": False})
-    
 
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = config.SERVICE_ACCOUNT_KEY_PATH
+    os.environ["GOOGLE_CLOUD_PROJECT"] = config.G_PROJECT_NAME
+    os.environ["GOOGLE_CLOUD_LOCATION"] = config.G_PROJECT_LOCATION
 
-    from langchain_community.embeddings import HuggingFaceEmbeddings
-
-    embedding_function = HuggingFaceEmbeddings(
-    model_name="sentence-transformers/all-MiniLM-L6-v2",
-    model_kwargs={"device": "cpu"},
-    encode_kwargs={"normalize_embeddings": False}
+    vertexai.init(
+    project=os.environ["GOOGLE_CLOUD_PROJECT"], 
+    location=os.environ["GOOGLE_CLOUD_LOCATION"],
 )
 
-# Force reload underlying model to CPU only
-    embedding_function.client = SentenceTransformer(
-    "sentence-transformers/all-MiniLM-L6-v2", device="cpu"
+    embeddings = VertexAIEmbeddings(
+    model_name="text-embedding-004"
 )
 
-
-    vector_db = Chroma(persist_directory='chroma_db_pdf', embedding_function=embedding_function)
+    vector_db = Chroma(persist_directory='chroma_db_pdf', embedding_function=embeddings)
     search_results = vector_db.similarity_search(query, k=2) # Chroma distance is the L2 norm squared; k is the amount of documents to return
     for result in search_results:
-        #context.append(result.metadata['source'] + " " + str(result.metadata['page'])+ " " + result.metadata["UPLOAD_DATE"] + result.page_content)
         contexts.append({
         "source": result.metadata['source'],
         "page": result.metadata['page'],
@@ -51,12 +50,14 @@ def generate_rag_prompt(query, context):
                 """).format(query=query, context=context)
     return prompt
 
-def RAG(option, country, context):
-    print(context)
-    query = "how to ride a ticket" #+ country + option 
+def RAG():
+    query = "please explain the nature and purpose of the business relationship"
     context = get_relevant_context_from_db(query)
+    print("CONTEXT: ",context)
     prompt = generate_rag_prompt(query=query, context=context)
     generator = VertexAIReader()
     result = generator.generate_content(prompt)
+    print("RESULT: ",result)
     return result
 
+RAG()

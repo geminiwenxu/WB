@@ -7,7 +7,7 @@ from langchain_google_vertexai import VertexAIEmbeddings
 import config as config
 import vertexai
 import os
-
+from langchain.embeddings.base import Embeddings
 # All three are required to use vertex AI.
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = config.SERVICE_ACCOUNT_KEY_PATH
 os.environ["GOOGLE_CLOUD_PROJECT"] = config.G_PROJECT_NAME
@@ -20,27 +20,43 @@ vertexai.init(
     location=os.environ["GOOGLE_CLOUD_LOCATION"],
 )
 
-loader =PyPDFLoader('/Users/geminiwenxu/Desktop/WB/data/ticket_to_ride.pdf')
+loader =PyPDFLoader('/Users/geminiwenxu/Desktop/WB/data/Guidelines on the use of Remote Customer Onboarding Solutions.pdf')
 docs = []
 docs_lazy = loader.lazy_load()
 
 for doc in docs_lazy:
-    doc.metadata["UPLOAD_DATE"] = "2025-10-10" #adding more metadata
-    #print(type(doc), "------",doc.page_content,"--------")
-    print(len(doc.metadata))
+    #adding more metadata
+    doc.metadata["UPLOAD_DATE"] = "2025-10-10" 
     docs.append(doc)
 
+
+table_doc = Document(
+    page_content="Hello, world!", metadata={'producer': 'Adobe PDF Library 22.3.98', 'creator': 'Acrobat PDFMaker 22 for Word', 'creationdate': '2023-03-30T08:57:36+02:00', 'author': '', 'classificationcontentmarkingheaderfontprops': '#000000,12,Calibri', 'classificationcontentmarkingheadershapeids': '1,2,3,d,15,16,17,1c,1d', 'classificationcontentmarkingheadertext': 'EBA Regular Use', 'comments': '', 'company': '', 'contenttypeid': '0x01010039B2671E3DAA274C89DACECC5CECCBB8', 'grammarlydocumentid': '36b4ac6da13f3902d397481eda509c4c71438fa2e33f5b4e3c262d4563136e4b', 'keywords': '', 'moddate': '2023-03-30T08:57:49+02:00', 'sourcemodified': 'D:20230329082115', 'subject': '', 'title': '', 'source': '/Users/geminiwenxu/Desktop/WB/data/Guidelines on the use of Remote Customer Onboarding Solutions.pdf', 'total_pages': 45, 'page': 0, 'page_label': '1', 'UPLOAD_DATE': '2025-10-10'}
+)
+
+docs.append(table_doc)
 print(type(docs),"----------",docs, "-----------------")
-text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200) # break content
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=200) # break content
 
 docs =text_splitter.split_documents(docs)
 
 # Initialize the a specific Embeddings Model version
-embeddings = VertexAIEmbeddings(
-    model_name="gemini-embedding-001"
-)
-#embeddings_function =HuggingFaceEmbeddings(model_name= 'sentence-transformers/all-MiniLM-L6-v2', model_kwargs={"device":"cpu"})
+class VertexEmbeddings768(Embeddings):
 
+    def __init__(self, base):
+        self.base = base
+        self.dimension = 768
+
+    def embed_documents(self, texts):
+        return self.base.embed(texts, embeddings_task_type="RETRIEVAL_DOCUMENT", dimensions=768)
+    
+    def embed_query(self, text):
+        return self.base.embed([text], embeddings_task_type="RETRIEVAL_QUERY", dimensions=768)[0]
+
+embeddings = VertexAIEmbeddings(
+    model_name="text-embedding-004", 
+)
+new_embeddings= VertexEmbeddings768(embeddings)
 vectorstore = Chroma.from_documents(docs, embeddings, persist_directory='chroma_db_pdf' )
 
 print(vectorstore._collection.count())
