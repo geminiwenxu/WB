@@ -18,3 +18,6 @@ RESPONSE_SCHEMA = """{
       ]
     }
 }"""
+
+CHUNK_SIZE = 200
+CHUNK_OVERLAY = 200
