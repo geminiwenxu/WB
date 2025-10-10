@@ -8,7 +8,7 @@ import config as config
 import vertexai
 import os
 from langchain.embeddings.base import Embeddings
-from constants import CHUNK_SIZE, CHUNK_OVERLAY 
+from constants import CHUNK_SIZE, CHUNK_OVERLAY, EMBEDDING_MODEL, DB_DIRECTORY
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = config.SERVICE_ACCOUNT_KEY_PATH
 os.environ["GOOGLE_CLOUD_PROJECT"] = config.G_PROJECT_NAME
@@ -45,8 +45,8 @@ class Embedding():
         docs =text_splitter.split_documents(docs)
 
     def generate_embeddings(self, docs):
-        embeddings = VertexAIEmbeddings(model_name="text-embedding-004")
-        vectorstore = Chroma.from_documents(docs, embeddings, persist_directory='chroma_db_pdf' )
+        embeddings = VertexAIEmbeddings(model_name=EMBEDDING_MODEL)
+        vectorstore = Chroma.from_documents(docs, embeddings, persist_directory=DB_DIRECTORY)
         print(vectorstore._collection.count())
 
 # Initialize the a specific Embeddings Model version
