@@ -10,7 +10,7 @@ import config
 import vertexai
 from langchain_google_vertexai import VertexAIEmbeddings
 
-def get_relevant_context_from_db(query):
+def get_relevant_context_from_db(query, country):
     contexts = []
 
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = config.SERVICE_ACCOUNT_KEY_PATH
@@ -19,14 +19,11 @@ def get_relevant_context_from_db(query):
 
     vertexai.init(
     project=os.environ["GOOGLE_CLOUD_PROJECT"], 
-    location=os.environ["GOOGLE_CLOUD_LOCATION"],
-)
+    location=os.environ["GOOGLE_CLOUD_LOCATION"])
 
-    embeddings = VertexAIEmbeddings(
-    model_name="text-embedding-004"
-)
+    embeddings = VertexAIEmbeddings(model_name="text-embedding-004")
 
-    vector_db = Chroma(persist_directory='chroma_db_pdf', embedding_function=embeddings)
+    vector_db = Chroma(persist_directory=f'chroma_db_pdf_{country}', embedding_function=embeddings)
     search_results = vector_db.similarity_search(query, k=2) # Chroma distance is the L2 norm squared; k is the amount of documents to return
     for result in search_results:
         contexts.append({
@@ -50,14 +47,14 @@ def generate_rag_prompt(query, context):
                 """).format(query=query, context=context)
     return prompt
 
-def RAG():
-    query = "please explain the nature and purpose of the business relationship"
-    context = get_relevant_context_from_db(query)
+
+def RAG(query,country):
+    context = get_relevant_context_from_db(query,country)
     print("CONTEXT: ",context)
     prompt = generate_rag_prompt(query=query, context=context)
-    generator = VertexAIReader()
-    result = generator.generate_content(prompt)
+    result = VertexAIReader().generate_content(prompt)
+    print("--------------------------------------------")
     print("RESULT: ",result)
     return result
 
-RAG()
+RAG(query = "please explain the nature and purpose of the business relationship", country="Germany")

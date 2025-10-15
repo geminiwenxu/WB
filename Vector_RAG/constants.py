@@ -22,4 +22,5 @@ RESPONSE_SCHEMA = """{
 CHUNK_SIZE = 200
 CHUNK_OVERLAY = 200
 EMBEDDING_MODEL = "text-embedding-004"
-DB_DIRECTORY = 'chroma_db_pdf'
+DB_DIRECTORY = 'chroma_db_pdf_'
+COUNTRIES =["Germany", "France"]

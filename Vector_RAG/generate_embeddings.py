@@ -8,21 +8,26 @@ import config as config
 import vertexai
 import os
 from langchain.embeddings.base import Embeddings
-from constants import CHUNK_SIZE, CHUNK_OVERLAY, EMBEDDING_MODEL, DB_DIRECTORY
+from constants import CHUNK_SIZE, CHUNK_OVERLAY, EMBEDDING_MODEL, DB_DIRECTORY, COUNTRIES
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = config.SERVICE_ACCOUNT_KEY_PATH
 os.environ["GOOGLE_CLOUD_PROJECT"] = config.G_PROJECT_NAME
 os.environ["GOOGLE_CLOUD_LOCATION"] = config.G_PROJECT_LOCATION
 vertexai.init(
     project=os.environ["GOOGLE_CLOUD_PROJECT"], 
-    location=os.environ["GOOGLE_CLOUD_LOCATION"],
-)
+    location=os.environ["GOOGLE_CLOUD_LOCATION"])
+
 class Embedding():
-    def __init__(self, path):
-        self.path = path
-    def load_pdf(self):
-        loader =PyPDFLoader('/Users/geminiwenxu/Desktop/WB/data/Guidelines on the use of Remote Customer Onboarding Solutions.pdf')
+    def __init__(self):
+        pass
+
+    def load_pdf(self, country="Germany"):
+        """ Go to a country folder to load files in this folder
+        When packing doc into docs, it is possible to add meta-data
+        Returns: List of lists of langchain Document object
+        """
         docs = []
+        loader = PyPDFLoader(f"/Users/geminiwenxu/Desktop/WB/data/{country}/Guidelines on the use of Remote Customer Onboarding Solutions.pdf")
         docs_lazy = loader.lazy_load()
 
         for doc in docs_lazy:
@@ -40,25 +45,20 @@ class Embedding():
         docs.append(table_doc)
         print(type(docs),"----------",docs, "-----------------")
     
-    def chunk(self):
+    def chunk(self, docs):
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAY)
         docs =text_splitter.split_documents(docs)
+        return docs 
 
-    def generate_embeddings(self, docs):
+    def generate_embeddings(self, docs, country):
         embeddings = VertexAIEmbeddings(model_name=EMBEDDING_MODEL)
-        vectorstore = Chroma.from_documents(docs, embeddings, persist_directory=DB_DIRECTORY)
+        vectorstore = Chroma.from_documents(docs, embeddings, persist_directory=f"chroma_db_pdf_{country}")
         print(vectorstore._collection.count())
-
-# Initialize the a specific Embeddings Model version
-class VertexEmbeddings768(Embeddings):
-
-    def __init__(self, base):
-        self.base = base
-        self.dimension = 768
-
-    def embed_documents(self, texts):
-        return self.base.embed(texts, embeddings_task_type="RETRIEVAL_DOCUMENT", dimensions=768)
     
-    def embed_query(self, text):
-        return self.base.embed([text], embeddings_task_type="RETRIEVAL_QUERY", dimensions=768)[0]
+    def pipeline(self):
+        for country in COUNTRIES:
+            docs = self.load_pdf(country)
+            docs= self.chunk(docs)
+            self.generate_embeddings(docs, country)
 
+Embedding().pipeline()
