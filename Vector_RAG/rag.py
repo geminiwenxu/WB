@@ -26,9 +26,11 @@ def get_relevant_context_from_db(query, country):
     vector_db = Chroma(persist_directory=f'chroma_db_pdf_{country}', embedding_function=embeddings)
     search_results = vector_db.similarity_search(query, k=2) # Chroma distance is the L2 norm squared; k is the amount of documents to return
     for result in search_results:
+        bwl_page_numb = result.metadata['page'] +1
+
         contexts.append({
         "source": result.metadata['source'],
-        "page": result.metadata['page'],
+        "page": bwl_page_numb,
         "upload_date": result.metadata["UPLOAD_DATE"],
         "content": result.page_content
     })
