@@ -12,12 +12,11 @@ google.cloud
 google.genai
 google.generativeai
 
-# Document processing
-python-docx
-docx2txt
-
 # Core Python dependencies
 requests
 numpy
 pandas
 os
+
+# Front-end 
+streamlit
