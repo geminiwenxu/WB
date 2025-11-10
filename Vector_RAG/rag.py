@@ -38,7 +38,7 @@ def get_relevant_context_from_db(query, country):
 
 
 def generate_rag_prompt(query, context):
-    """"
+    """
     To generate promot based on the query from user and relevant context based on similarity 
     """
     #context = context.replace("'", "").replace("\n", "")
