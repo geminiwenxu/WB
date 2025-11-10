@@ -39,10 +39,10 @@ class VertexAIReader:
             max_output_tokens=8192,
             response_modalities=["TEXT"],
             safety_settings=[
-                types.SafetySetting(category="HARM_CATEGORY_HATE_SPEECH", threshold="OFF"),
-                types.SafetySetting(category="HARM_CATEGORY_DANGEROUS_CONTENT", threshold="OFF"),
-                types.SafetySetting(category="HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold="OFF"),
-                types.SafetySetting(category="HARM_CATEGORY_HARASSMENT", threshold="OFF")
+                types.SafetySetting(category="HARM_CATEGORY_HATE_SPEECH", threshold="BLOCK_LOW_AND_ABOVE"),
+                types.SafetySetting(category="HARM_CATEGORY_DANGEROUS_CONTENT", threshold="BLOCK_LOW_AND_ABOVE"),
+                types.SafetySetting(category="HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold="BLOCK_LOW_AND_ABOVE"),
+                types.SafetySetting(category="HARM_CATEGORY_HARASSMENT", threshold="BLOCK_LOW_AND_ABOVE")
             ],
         )
 
