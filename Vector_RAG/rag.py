@@ -10,6 +10,9 @@ import config
 import vertexai
 from langchain_google_vertexai import VertexAIEmbeddings
 
+def filter():
+    # TODO: CHECK THE QUESTION
+    pass 
 def get_relevant_context_from_db(query, country):
     contexts = []
 
