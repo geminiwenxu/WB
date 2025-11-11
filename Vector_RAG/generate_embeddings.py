@@ -9,6 +9,7 @@ import vertexai
 import os
 from langchain.embeddings.base import Embeddings
 from constants import CHUNK_SIZE, CHUNK_OVERLAY, EMBEDDING_MODEL, DB_DIRECTORY, COUNTRIES
+import extract
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = config.SERVICE_ACCOUNT_KEY_PATH
 os.environ["GOOGLE_CLOUD_PROJECT"] = config.G_PROJECT_NAME
@@ -27,23 +28,44 @@ class Embedding():
         Returns: List of lists of langchain Document object
         """
         docs = []
-        loader = PyPDFLoader(f"/Users/geminiwenxu/Desktop/WB/data/{country}/Guidelines on the use of Remote Customer Onboarding Solutions.pdf")
+        pdf_path = f"/Users/geminiwenxu/Desktop/WB/data/{country}/Guidelines on the use of Remote Customer Onboarding Solutions.pdf"
+        loader = PyPDFLoader(pdf_path)
         docs_lazy = loader.lazy_load()
 
         for doc in docs_lazy:
             #adding more metadata
             doc.metadata["UPLOAD_DATE"] = "2025-10-10" 
             docs.append(doc)
-        return docs
-    
-    def inject_table(self, docs):
-        # TODO: replace "hello world string with table info string"
-        table_doc = Document(
-            page_content="Hello, world!", metadata={'producer': 'Adobe PDF Library 22.3.98', 'creator': 'Acrobat PDFMaker 22 for Word', 'creationdate': '2023-03-30T08:57:36+02:00', 'author': '', 'classificationcontentmarkingheaderfontprops': '#000000,12,Calibri', 'classificationcontentmarkingheadershapeids': '1,2,3,d,15,16,17,1c,1d', 'classificationcontentmarkingheadertext': 'EBA Regular Use', 'comments': '', 'company': '', 'contenttypeid': '0x01010039B2671E3DAA274C89DACECC5CECCBB8', 'grammarlydocumentid': '36b4ac6da13f3902d397481eda509c4c71438fa2e33f5b4e3c262d4563136e4b', 'keywords': '', 'moddate': '2023-03-30T08:57:49+02:00', 'sourcemodified': 'D:20230329082115', 'subject': '', 'title': '', 'source': '/Users/geminiwenxu/Desktop/WB/data/Guidelines on the use of Remote Customer Onboarding Solutions.pdf', 'total_pages': 45, 'page': 0, 'page_label': '1', 'UPLOAD_DATE': '2025-10-10'}
-        )
+        return docs, pdf_path
 
-        docs.append(table_doc)
-        print(type(docs),"----------",docs, "-----------------")
+    def table_extract(self, pdf_path):
+        table_list = extract.extract_tables_for_rag(pdf_path)
+        return table_list
+    
+    def inject_table(self, docs, pdf_path):
+        """
+        Adds all extracted Tables at the end of the doc
+        """
+        table_strings = self.table_extract(pdf_path)
+
+        for idx, table_text in enumerate(table_strings):
+            if not table_text.strip():
+                continue
+
+            table_doc = Document(
+                page_content=table_text,
+                metadata={
+                    "source": pdf_path,
+                    "type": "table",
+                    "table_index": idx,
+                    "UPLOAD_DATE": "2025-10-10",
+                    "country": docs[0].metadata.get("country", "unknown") if docs else "unknown"
+                }
+            )
+            docs.append(table_doc)
+
+        print(f"Table(s) added. New Document count: {len(docs)}")
+        return docs
     
     def chunk(self, docs):
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAY)
@@ -57,8 +79,9 @@ class Embedding():
     
     def pipeline(self):
         for country in COUNTRIES:
-            docs = self.load_pdf(country)
-            docs= self.chunk(docs)
+            docs, pdf_path = self.load_pdf(country)
+            docs = self.inject_table(docs, pdf_path)
+            docs = self.chunk(docs)
             self.generate_embeddings(docs, country)
 
 Embedding().pipeline()
